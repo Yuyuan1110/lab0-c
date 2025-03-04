@@ -24,10 +24,7 @@ void q_free(struct list_head *head)
         return;
     }
 
-    element_t *entry, *safe = (element_t *) malloc(sizeof(element_t));
-    if (!safe) {
-        return;
-    }
+    element_t *entry, *safe = NULL;
 
     list_for_each_entry_safe (entry, safe, head, list) {
         list_del(&entry->list);
@@ -82,13 +79,35 @@ bool q_insert_tail(struct list_head *head, char *s)
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head)) {
+        return NULL;
+    }
+
+    element_t *element = list_first_entry(head, element_t, list);
+    list_del(&element->list);
+
+    if (sp != NULL && bufsize > 0) {
+        strncpy(sp, element->value, bufsize - 1);
+        sp[bufsize - 1] = '\0';
+    }
+    return element;
 }
 
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    return NULL;
+    if (!head || list_empty(head)) {
+        return NULL;
+    }
+
+    element_t *element = list_last_entry(head, element_t, list);
+    list_del(&element->list);
+
+    if (sp != NULL && bufsize > 0) {
+        strncpy(sp, element->value, bufsize - 1);
+        sp[bufsize - 1] = '\0';
+    }
+    return element;
 }
 
 /* Return number of elements in queue */
