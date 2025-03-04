@@ -1,27 +1,81 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "list.h"
 
 #include "queue.h"
 
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    return NULL;
+    struct list_head *head = malloc(sizeof(struct list_head));
+    if (!head) {
+        return NULL;
+    }
+
+    INIT_LIST_HEAD(head);
+    return head;
 }
 
 /* Free all storage used by queue */
-void q_free(struct list_head *head) {}
+void q_free(struct list_head *head)
+{
+    if (!head) {
+        return;
+    }
+
+    element_t *entry, *safe = (element_t *) malloc(sizeof(element_t));
+    if (!safe) {
+        return;
+    }
+
+    list_for_each_entry_safe (entry, safe, head, list) {
+        list_del(&entry->list);
+        free(entry->value);
+        free(entry);
+    }
+    free(head);
+}
 
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head) {
+        head = q_new();
+    }
+    element_t *element = (element_t *) malloc(sizeof(element_t));
+    const struct list_head *list =
+        (struct list_head *) malloc(sizeof(struct list_head));
+    element->value = malloc(strlen(s) + 1);
+    if (!element || !list || !element->value) {
+        return false;
+    }
+    strncpy(element->value, s, strlen(s) + 1);
+    element->list = *list;
+
+    list_add(&element->list, head);
+
     return true;
 }
 
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head) {
+        head = q_new();
+    }
+    element_t *element = (element_t *) malloc(sizeof(element_t));
+    const struct list_head *list =
+        (struct list_head *) malloc(sizeof(struct list_head));
+    element->value = malloc(strlen(s) + 1);
+    if (!element || !list) {
+        return false;
+    }
+    strncpy(element->value, s, strlen(s) + 1);
+    element->list = *list;
+
+    list_add_tail(&element->list, head);
+
     return true;
 }
 
