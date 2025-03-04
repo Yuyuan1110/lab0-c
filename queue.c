@@ -28,8 +28,7 @@ void q_free(struct list_head *head)
 
     list_for_each_entry_safe (entry, safe, head, list) {
         list_del(&entry->list);
-        free(entry->value);
-        free(entry);
+        q_release_element(entry);
     }
     free(head);
 }
@@ -128,6 +127,25 @@ int q_size(struct list_head *head)
 bool q_delete_mid(struct list_head *head)
 {
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
+    // Eliminate the NULL, empty and singular element(head)
+    if (!head || list_is_singular(head) || list_empty(head)) {
+        return false;
+    }
+
+    // use hare-tortoies pointer to find the middle element,
+    // tortoise take 1 step and hare take 2 step,
+    // when hare arraive the destination(or bake to head),
+    // tortoise just went half of journy.
+    struct list_head *hare = head;
+    struct list_head *tortoise = head;
+    do {
+        hare = hare->next->next;
+        tortoise = tortoise->next;
+    } while (hare != head && hare->next != head);
+    element_t *element = list_entry(tortoise, element_t, list);
+    list_del(&element->list);
+    q_release_element(element);
+
     return true;
 }
 
