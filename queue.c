@@ -75,6 +75,19 @@ bool q_insert_tail(struct list_head *head, char *s)
     return true;
 }
 
+bool q_insert_after(struct list_head *cnode, struct list_head *anode)
+{
+    if (!cnode || !anode) {
+        return false;
+    }
+    anode->next = cnode->next;
+    anode->prev = cnode;
+    cnode->next->prev = anode;
+    cnode->next = anode;
+
+    return true;
+}
+
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
@@ -190,21 +203,15 @@ void q_swap(struct list_head *head)
     if (!head || list_is_singular(head) || list_empty(head)) {
         return;
     }
+    struct list_head *anode = NULL;
     struct list_head **pp = &(head->next);
-    struct list_head *a, *b, *temp = head;
 
     while (*pp != head && (*pp)->next != head) {
-        a = *pp;
-        b = a->next;
-        a->next = b->next;
-        b->next = a;
-        b->prev = temp;
-        a->prev = b;
-        *pp = b;
-        temp = a;
-        pp = &(a->next);
+        anode = *pp;
+        list_del(anode);
+        q_insert_after(anode->next, anode);
+        pp = &(anode->next);
     }
-    (*pp)->prev = temp;
     return;
 }
 
