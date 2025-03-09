@@ -80,9 +80,10 @@ bool q_insert_after(struct list_head *cnode, struct list_head *anode)
     if (!cnode || !anode) {
         return false;
     }
+    struct list_head *cnext = cnode->next;
     anode->next = cnode->next;
     anode->prev = cnode;
-    cnode->next->prev = anode;
+    cnext->prev = anode;
     cnode->next = anode;
 
     return true;
@@ -216,12 +217,57 @@ void q_swap(struct list_head *head)
 }
 
 /* Reverse elements in queue */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    if (!head || list_empty(head)) {
+        return;
+    }
+    struct list_head *node = head;
+    do {
+        struct list_head *temp = node->next;
+        node->next = node->prev;
+        node->prev = temp;
+        node = node->next;
+    } while (node != head);
+}
 
 /* Reverse the nodes of the list k at a time */
+// if k = 3;
+// a <-> b <-> c <-> d <-> e <-> f  =>
+// c <-> b <-> a <-> f <-> e <-> d
+// a <-> b <-> c <-> d <-> e  =>
+// c <-> b <-> a <-> d <-> e
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+    if (!head || list_empty(head)) {
+        return;
+    }
+    if (k == 1) {
+        q_reverse(head);
+        return;
+    }
+
+    struct list_head *node = head->next;
+    int size = q_size(node);
+    while (size >= k) {
+        struct list_head *tail;
+        struct list_head *nhead = node;  // new head
+        struct list_head *ngh = node;    // next group head
+
+        for (int i = 0; i < k; i++) {
+            ngh = ngh->next;
+        }
+        tail = ngh->prev;
+        while (nhead != tail) {
+            struct list_head *temp = nhead->next;
+            list_del(nhead);
+            q_insert_after(tail, nhead);
+            nhead = temp;
+        }
+        node = ngh;
+        size -= k;
+    }
 }
 
 /* Sort elements of queue in ascending/descending order */
