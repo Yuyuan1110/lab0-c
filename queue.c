@@ -75,20 +75,6 @@ bool q_insert_tail(struct list_head *head, char *s)
     return true;
 }
 
-bool q_insert_after(struct list_head *cnode, struct list_head *anode)
-{
-    if (!cnode || !anode) {
-        return false;
-    }
-    struct list_head *cnext = cnode->next;
-    anode->next = cnode->next;
-    anode->prev = cnode;
-    cnext->prev = anode;
-    cnode->next = anode;
-
-    return true;
-}
-
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
@@ -210,7 +196,7 @@ void q_swap(struct list_head *head)
     while (*pp != head && (*pp)->next != head) {
         anode = *pp;
         list_del(anode);
-        q_insert_after(anode->next, anode);
+        list_add(anode, anode->next);
         pp = &(anode->next);
     }
     return;
@@ -262,17 +248,55 @@ void q_reverseK(struct list_head *head, int k)
         while (nhead != tail) {
             struct list_head *temp = nhead->next;
             list_del(nhead);
-            q_insert_after(tail, nhead);
+            list_add(nhead, tail);
             nhead = temp;
         }
         node = ngh;
         size -= k;
     }
 }
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head)) {
+        return;
+    }
 
-/* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+    struct list_head *tortoise = head->next;
+    struct list_head *hare = head->next;
 
+    while (hare->next != head && hare->next->next != head) {
+        tortoise = tortoise->next;
+        hare = hare->next->next;
+    }
+
+    struct list_head thead;
+    struct list_head *head2 = &thead;
+    list_cut_position(head2, head, tortoise);
+
+    q_sort(head, descend);
+    q_sort(head2, descend);
+
+    struct list_head *curr1 = head->next;
+    struct list_head *curr2 = head2->next;
+
+    while (curr1 != head && curr2 != head2) {
+        const element_t *val1 = list_entry(curr1, element_t, list);
+        const element_t *val2 = list_entry(curr2, element_t, list);
+        if (strcmp(val1->value, val2->value) > 0) {
+            struct list_head *temp = curr2->next;
+            list_move(curr2, curr1->prev);
+            curr2 = temp;
+        } else {
+            curr1 = curr1->next;
+        }
+    }
+    if (curr1 == head) {
+        list_splice_tail(head2, head);
+    }
+    if (descend) {
+        q_reverse(head);
+    }
+}
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
 int q_ascend(struct list_head *head)
