@@ -8,7 +8,8 @@
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    struct list_head *head = malloc(sizeof(struct list_head));
+    struct list_head *head =
+        (struct list_head *) malloc(sizeof(struct list_head));
     if (!head) {
         return NULL;
     }
@@ -20,7 +21,7 @@ struct list_head *q_new()
 /* Free all storage used by queue */
 void q_free(struct list_head *head)
 {
-    if (!head) {
+    if (!head || list_empty(head)) {
         return;
     }
 
@@ -42,7 +43,7 @@ bool q_insert_head(struct list_head *head, char *s)
     element_t *element = (element_t *) malloc(sizeof(element_t));
     const struct list_head *list =
         (struct list_head *) malloc(sizeof(struct list_head));
-    element->value = malloc(strlen(s) + 1);
+    element->value = (char *) malloc(strlen(s) + 1);
     if (!element || !list || !element->value) {
         return false;
     }
@@ -63,7 +64,7 @@ bool q_insert_tail(struct list_head *head, char *s)
     element_t *element = (element_t *) malloc(sizeof(element_t));
     const struct list_head *list =
         (struct list_head *) malloc(sizeof(struct list_head));
-    element->value = malloc(strlen(s) + 1);
+    element->value = (char *) malloc(strlen(s) + 1);
     if (!element || !list) {
         return false;
     }
