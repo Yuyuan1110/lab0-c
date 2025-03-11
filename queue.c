@@ -302,7 +302,22 @@ void q_sort(struct list_head *head, bool descend)
 int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+
+    if (!head || list_empty(head) || list_is_singular(head)) {
+        return 0;
+    }
+    struct list_head *next = head->next;
+    while (next->next != head) {
+        const element_t *val1 = list_entry(next, element_t, list);
+        element_t *val2 = list_entry(next->next, element_t, list);
+        if (strcmp(val1->value, val2->value) > 0) {
+            list_del(next->next);
+            q_release_element(val2);
+        } else {
+            next = next->next;
+        }
+    }
+    return q_size(head);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere
@@ -310,7 +325,21 @@ int q_ascend(struct list_head *head)
 int q_descend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head) || list_is_singular(head)) {
+        return 0;
+    }
+    struct list_head *prev = head->prev;
+    while (prev->prev != head) {
+        const element_t *val1 = list_entry(prev, element_t, list);
+        element_t *val2 = list_entry(prev->prev, element_t, list);
+        if (strcmp(val1->value, val2->value) > 0) {
+            list_del(prev->prev);
+            q_release_element(val2);
+        } else {
+            prev = prev->prev;
+        }
+    }
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in
@@ -318,5 +347,21 @@ int q_descend(struct list_head *head)
 int q_merge(struct list_head *head, bool descend)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || list_empty(head)) {
+        return 0;
+    }
+
+    struct list_head *fqueue = list_entry(head->next, queue_contex_t, chain)->q;
+
+    struct list_head *queue_ptr = head->next->next;
+    while (queue_ptr != head) {
+        struct list_head *queue =
+            list_entry(queue_ptr, queue_contex_t, chain)->q;
+
+        list_splice_init(queue, fqueue);
+        list_entry(queue_ptr, queue_contex_t, chain)->size = 0;
+        queue_ptr = queue_ptr->next;
+    }
+    q_sort(fqueue, descend);
+    return q_size(fqueue);
 }
